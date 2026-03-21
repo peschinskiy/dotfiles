@@ -8,7 +8,7 @@ Each top-level directory is a stow package that mirrors the home directory layou
 
 | Package | Contents | Target |
 |---|---|---|
-| `bin/` | Shell scripts | `~/bin/` |
+| `bin/` | Shell scripts | `~/.local/bin/` |
 | `fish/` | Fish shell config, functions, aliases | `~/.config/fish/` |
 
 ## Install
@@ -24,11 +24,12 @@ stow -t $HOME */
 
 Make sure `~/bin` is on your `PATH` and aliases are sourced. Add to `~/.config/fish/config.fish`:
 ```fish
-fish_add_path ~/bin
 source ~/.config/fish/aliases.fish
 ```
 
 ## Scripts
+
+Utils and aliases management is inspired by [Evan Hahn's approach](https://evanhahn.com/scripts-i-wrote-that-i-use-all-the-time/): prefer scripts in ~/.local/bin over aliases — no shell reload needed, any language, works across all shells.
 
 | Script | Description |
 |---|---|
