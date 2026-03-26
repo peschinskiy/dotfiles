@@ -1,5 +1,6 @@
 require('peschinskiy.set')
 require('peschinskiy.remap')
+require('peschinskiy.lazy_init')
 
 -- local myGroup = vim.api.nvim_create_augroup('peschinskiy', {})
 
