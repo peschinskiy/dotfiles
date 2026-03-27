@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""batman — fetch and browse README docs for CLI tools."""
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import urllib.request
+from pathlib import Path
+
+CACHE_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "batman"
+GITHUB_DIR = CACHE_DIR / "github"
+USER_DIR = CACHE_DIR / "user"
+CONFIG_FILE = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "batman" / "config.json"
+
+
+def load_config() -> dict:
+    if CONFIG_FILE.exists():
+        return json.loads(CONFIG_FILE.read_text())
+    return {}
+
+
+def save_config(data: dict) -> None:
+    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG_FILE.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def fetch_doc(tool: str, repo: str) -> None:
+    GITHUB_DIR.mkdir(parents=True, exist_ok=True)
+    out = GITHUB_DIR / f"{tool}.md"
+    for branch in ("main", "master"):
+        url = f"https://raw.githubusercontent.com/{repo}/refs/heads/{branch}/README.md"
+        print(f"Fetching {url} ...")
+        try:
+            with urllib.request.urlopen(url) as resp:
+                out.write_bytes(resp.read())
+            print(f"Cached to {out}")
+            return
+        except urllib.error.HTTPError:
+            continue
+    sys.exit(f"batman: could not fetch README for '{repo}' (tried main and master)")
+
+
+def view_doc(path: Path) -> None:
+    if shutil.which("glow"):
+        subprocess.run(["glow", "-p", str(path)])
+        return
+    viewer = shutil.which("bat") or shutil.which("batcat") or shutil.which("less") or "more"
+    subprocess.run([viewer, str(path)])
+
+
+def github_doc(tool: str) -> Path | None:
+    """Return the github doc path for tool, migrating legacy flat files if needed."""
+    new = GITHUB_DIR / f"{tool}.md"
+    if new.exists():
+        return new
+    legacy = CACHE_DIR / f"{tool}.md"
+    if legacy.exists():
+        GITHUB_DIR.mkdir(parents=True, exist_ok=True)
+        legacy.rename(new)
+        return new
+    return None
+
+
+def user_doc(tool: str) -> Path | None:
+    path = USER_DIR / f"{tool}.md"
+    return path if path.exists() else None
+
+
+def cmd_show(tool: str) -> None:
+    if doc := user_doc(tool):
+        view_doc(doc)
+        return
+
+    if doc := github_doc(tool):
+        view_doc(doc)
+        return
+
+    config = load_config()
+    repo = config.get(tool, "")
+    if not repo:
+        repo = input(f"GitHub repo for '{tool}' (e.g. simonw/llm): ").strip()
+        if not repo:
+            sys.exit("batman: no repo provided")
+    fetch_doc(tool, repo)
+    config[tool] = repo
+    save_config(config)
+    view_doc(GITHUB_DIR / f"{tool}.md")
+
+
+def cmd_edit(tool: str) -> None:
+    editor = os.environ.get("EDITOR", "")
+    if not editor:
+        sys.exit("batman: $EDITOR is not set")
+    USER_DIR.mkdir(parents=True, exist_ok=True)
+    doc = USER_DIR / f"{tool}.md"
+    if not doc.exists():
+        doc.write_text(f"# {tool}\n\n")
+    subprocess.run([editor, str(doc)])
+
+
+def cmd_update(tool: str | None) -> None:
+    config = load_config()
+    if not config:
+        sys.exit("batman: no tools configured")
+
+    tools = [tool] if tool else list(config.keys())
+    for t in tools:
+        repo = config.get(t)
+        if not repo:
+            print(f"batman: '{t}' not found in config, skipping", file=sys.stderr)
+            continue
+        fetch_doc(t, repo)
+
+
+def cmd_remove(tool: str) -> None:
+    removed = []
+    for path in (USER_DIR / f"{tool}.md", GITHUB_DIR / f"{tool}.md", CACHE_DIR / f"{tool}.md"):
+        if path.exists():
+            path.unlink()
+            removed.append(path.name)
+    config = load_config()
+    if tool in config:
+        del config[tool]
+        save_config(config)
+    if removed:
+        print(f"batman: removed '{tool}'")
+    else:
+        print(f"batman: no docs found for '{tool}'")
+
+
+def cmd_info(tool: str | None) -> None:
+    config = load_config()
+
+    # Collect all known tools from config + existing doc files
+    tools: set[str] = set(config.keys())
+    for d in (GITHUB_DIR, USER_DIR, CACHE_DIR):
+        if d.exists():
+            for f in d.glob("*.md"):
+                if d == CACHE_DIR and (GITHUB_DIR / f.name).exists():
+                    continue  # already counted as github
+                tools.add(f.stem)
+
+    if tool:
+        tools = {tool} & tools
+        if not tools:
+            sys.exit(f"batman: no docs found for '{tool}'")
+
+    rows = []
+    for t in sorted(tools):
+        if repo := config.get(t):
+            rows.append((t, "github", f"https://github.com/{repo}"))
+        elif (GITHUB_DIR / f"{t}.md").exists() or (CACHE_DIR / f"{t}.md").exists():
+            rows.append((t, "github", "(no repo configured)"))
+        if (USER_DIR / f"{t}.md").exists():
+            rows.append((t, "user", str(USER_DIR / f"{t}.md")))
+
+    if not rows:
+        print("batman: no docs found")
+        return
+
+    w_tool = max(len(r[0]) for r in rows)
+    w_type = max(len(r[1]) for r in rows)
+    print(f"{'TOOL':<{w_tool}}  {'TYPE':<{w_type}}  SOURCE")
+    for t, kind, source in rows:
+        print(f"{t:<{w_tool}}  {kind:<{w_type}}  {source}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="batman",
+        description="Fetch and browse README docs for CLI tools.",
+        add_help=False,
+    )
+    parser.add_argument("toolname", nargs="?")
+    parser.add_argument("--edit", metavar="toolname")
+    parser.add_argument("--update", nargs="?", const=True, metavar="toolname")
+    parser.add_argument("--remove", metavar="toolname")
+    parser.add_argument("--info", nargs="?", const=True, metavar="toolname")
+    parser.add_argument("--help", "-h", action="store_true")
+
+    args = parser.parse_args()
+
+    if args.help or (not any([args.toolname, args.edit, args.update, args.remove, args.info])):
+        print(
+            "batman — fetch and browse README docs for CLI tools\n\n"
+            "USAGE:\n"
+            "  batman <toolname>               Show docs (user doc takes priority over github)\n"
+            "  batman --edit <toolname>        Create or edit a user-written doc in $EDITOR\n"
+            "  batman --update [toolname]      Re-fetch github docs (all if omitted)\n"
+            "  batman --remove <toolname>      Remove all cached docs and config entry\n"
+            "  batman --info [toolname]        List stored docs with type (github/user)\n"
+            "  batman --help                   Show this help message\n\n"
+            "STORAGE:\n"
+            f"  GitHub docs:  {GITHUB_DIR}/<toolname>.md\n"
+            f"  User docs:    {USER_DIR}/<toolname>.md\n"
+            f"  Config:       {CONFIG_FILE}"
+        )
+        return
+
+    if args.remove:
+        cmd_remove(args.remove)
+    elif args.edit:
+        cmd_edit(args.edit)
+    elif args.info is not None:
+        cmd_info(None if args.info is True else args.info)
+    elif args.update is not None:
+        cmd_update(None if args.update is True else args.update)
+    elif args.toolname:
+        cmd_show(args.toolname)
+
+
+if __name__ == "__main__":
+    main()

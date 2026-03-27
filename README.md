@@ -34,6 +34,7 @@ Utils and aliases management is inspired by [Evan Hahn's approach](https://evanh
 | Script | Description |
 |---|---|
 | `alphabet` | Print the alphabet in lower and uppercase |
+| `batman` | Fetch and browse GitHub README docs for CLI tools |
 | `boop` | Notify success/failure of the previous command |
 | `copy` | Pipe stdin to clipboard |
 | `cpwd` | Copy current directory path to clipboard |

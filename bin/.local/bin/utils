@@ -3,6 +3,7 @@ set -euo pipefail
 
 column -t -s $'\t' << 'EOF'
 alphabet	Print the alphabet in lower and uppercase
+batman	Fetch and browse GitHub README docs for CLI tools
 boop	Notify success/failure of the previous command
 copy	Pipe stdin to clipboard
 cpwd	Copy current directory path to clipboard
