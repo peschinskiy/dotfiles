@@ -11,8 +11,8 @@ import urllib.request
 from pathlib import Path
 
 CACHE_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "batman"
-GITHUB_DIR = CACHE_DIR / "github"
-USER_DIR = CACHE_DIR / "user"
+GITHUB_DIR = CACHE_DIR / "contrib"
+USER_DIR = CACHE_DIR / "custom"
 CONFIG_FILE = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "batman" / "config.json"
 
 
