@@ -32,11 +32,6 @@ vim.keymap.set("n", "N", "Nzzzv")
 -- vim.keymap.set('x', '<C-p>', [["_dP]], {desc = 'replace without modifying yank register'})
 vim.keymap.set({ "n", "v" }, "<leader>-d", [[\_d]])
 
-vim.keymap.set("i", "<C-h>", "<Left>")
-vim.keymap.set("i", "<C-j>", "<Down>")
-vim.keymap.set("i", "<C-k>", "<Up>")
-vim.keymap.set("i", "<C-l>", "<Right>")
-
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- bufferline tab navigation

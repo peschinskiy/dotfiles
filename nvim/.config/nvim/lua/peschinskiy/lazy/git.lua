@@ -1,0 +1,38 @@
+return {
+	{
+		"lewis6991/gitsigns.nvim",
+		config = function()
+			local gs = require("gitsigns")
+			gs.setup({
+				current_line_blame = true,
+				current_line_blame_opts = {
+					delay = 500,
+				},
+				numhl = true,
+			})
+			-- Actions
+			vim.keymap.set("n", "<leader>hp", gs.preview_hunk_inline, { desc = "[H]unk [P]review inline" })
+			vim.keymap.set("n", "<leader>hs", gs.stage_hunk)
+			vim.keymap.set("n", "<leader>hr", gs.reset_hunk)
+			vim.keymap.set("v", "<leader>hs", function()
+				gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+			end)
+			vim.keymap.set("v", "<leader>hr", function()
+				gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
+			end)
+
+			vim.keymap.set("n", "<leader>gS", gs.stage_buffer)
+			vim.keymap.set("n", "<leader>gR", gs.reset_buffer)
+			vim.keymap.set("n", "<leader>gd", gs.diffthis)
+		end,
+	},
+	{
+		"tpope/vim-fugitive",
+		config = function()
+			vim.keymap.set("n", "<leader>gs", function()
+				vim.cmd("botright vertical Git")
+				vim.cmd("vertical resize 75")
+			end, { desc = "[G]it [S]tatus" })
+		end,
+	},
+}
