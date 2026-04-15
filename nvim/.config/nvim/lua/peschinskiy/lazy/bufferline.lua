@@ -1,12 +1,16 @@
 return {
 	{
-                "akinsho/bufferline.nvim",
+		"akinsho/bufferline.nvim",
 		version = "*",
 		dependencies = "nvim-tree/nvim-web-devicons",
 		opts = {
 			options = {
-				separator_style = "slant",
+				separator_style = "thick",
+				numbers = "ordinal",
 				diagnostics = "nvim_lsp",
+				-- diagnostics_indicator = function(count, level, diagnostics_dict, context)
+				-- 	return "(" .. count .. ")"
+				-- end,
 			},
 		},
 		keys = {
