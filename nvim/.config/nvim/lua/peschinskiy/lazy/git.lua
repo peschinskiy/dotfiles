@@ -30,7 +30,8 @@ return {
 		"tpope/vim-fugitive",
 		config = function()
 			vim.keymap.set("n", "<leader>gs", function()
-				vim.cmd("tab Git")
+				vim.cmd.Git()
+                                vim.cmd.only()
 			end, { desc = "[G]it [S]tatus" })
 		end,
 	},
