@@ -1,2 +1,5 @@
 .session.vim
 *.log
+bin/.local/bin/claude
+bin/.local/bin/scfw
+tmux/.config/tmux/plugins/

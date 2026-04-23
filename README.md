@@ -22,8 +22,9 @@ stow -t $HOME fish
 stow -t $HOME */
 ```
 
-Make sure `~/bin` is on your `PATH` and aliases are sourced. Add to `~/.config/fish/config.fish`:
+Make sure `~/.local/bin` is on your `PATH` and aliases are sourced. Add to `~/.config/fish/config.fish`:
 ```fish
+fish_add_path ~/.local/bin
 source ~/.config/fish/aliases.fish
 ```
 
