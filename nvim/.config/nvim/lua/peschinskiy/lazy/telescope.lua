@@ -37,9 +37,27 @@ return {
 		"nvim-telescope/telescope-file-browser.nvim",
 		dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
 		config = function()
+			local actions_state = require("telescope.actions.state")
+			local actions = require("telescope.actions")
+
+			local function live_grep_at_browser_cwd(prompt_bufnr)
+				local current_picker = actions_state.get_current_picker(prompt_bufnr)
+				local cwd = current_picker.finder.path
+				actions.close(prompt_bufnr)
+				require("telescope.builtin").live_grep({
+					cwd = cwd,
+					additional_args = { "--hidden" },
+				})
+			end
+
 			require("telescope").setup({
 				extensions = {
-					file_browser = {},
+					file_browser = {
+						mappings = {
+							["i"] = { ["<C-g>"] = live_grep_at_browser_cwd },
+							["n"] = { ["<C-g>"] = live_grep_at_browser_cwd },
+						},
+					},
 				},
 			})
 			require("telescope").load_extension("file_browser")

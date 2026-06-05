@@ -10,6 +10,13 @@ return {
 				},
 				numhl = true,
 			})
+			-- Navigation
+			vim.keymap.set("n", "]h", function()
+				gs.nav_hunk("next")
+			end, { desc = "Next hunk" })
+			vim.keymap.set("n", "[h", function()
+				gs.nav_hunk("prev")
+			end, { desc = "Prev hunk" })
 			-- Actions
 			vim.keymap.set("n", "<leader>hp", gs.preview_hunk_inline, { desc = "[H]unk [P]review inline" })
 			vim.keymap.set("n", "<leader>hs", gs.stage_hunk, { desc = "[H]unk [S]tage" })
@@ -31,8 +38,16 @@ return {
 		config = function()
 			vim.keymap.set("n", "<leader>gs", function()
 				vim.cmd.Git()
-                                vim.cmd.only()
+				vim.cmd.only()
 			end, { desc = "[G]it [S]tatus" })
 		end,
+	},
+	{
+		"tpope/vim-rhubarb",
+		dependencies = { "tpope/vim-fugitive" },
+		keys = {
+			{ "<leader>gl", ":GBrowse!<cr>", desc = "[G]it [L]ink copy", silent = true },
+			{ "<leader>gl", ":GBrowse!<cr>", mode = "v", desc = "[G]it [L]ink copy selection", silent = true },
+		},
 	},
 }

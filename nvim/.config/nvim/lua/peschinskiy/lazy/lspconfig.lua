@@ -7,10 +7,6 @@ return {
 			"saghen/blink.cmp",
 		},
 		config = function()
-			require("conform").setup({
-				formatters_by_ft = {},
-			})
-
 			vim.api.nvim_create_autocmd("LspAttach", {
 				callback = function(args)
 					local buf = args.buf
@@ -18,8 +14,18 @@ return {
 					vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = buf, desc = "Go to definition" })
 					vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { buffer = buf, desc = "Go to declaration" })
 					vim.keymap.set("n", "gr", vim.lsp.buf.references, { buffer = buf, desc = "Go to references" })
-					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = buf, desc = "Go to implementation" })
-					vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { buffer = buf, desc = "Go to type definition" })
+					vim.keymap.set(
+						"n",
+						"gi",
+						vim.lsp.buf.implementation,
+						{ buffer = buf, desc = "Go to implementation" }
+					)
+					vim.keymap.set(
+						"n",
+						"gy",
+						vim.lsp.buf.type_definition,
+						{ buffer = buf, desc = "Go to type definition" }
+					)
 					-- Docs
 					vim.keymap.set("n", "<leader>K", vim.lsp.buf.hover, { buffer = buf, desc = "Hover docs" })
 					vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = buf, desc = "Signature help" })
@@ -29,7 +35,12 @@ return {
 					-- Diagnostics
 					vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { buffer = buf, desc = "Prev diagnostic" })
 					vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { buffer = buf, desc = "Next diagnostic" })
-					vim.keymap.set("n", "<leader>de", vim.diagnostic.open_float, { buffer = buf, desc = "Show diagnostic" })
+					vim.keymap.set(
+						"n",
+						"<leader>de",
+						vim.diagnostic.open_float,
+						{ buffer = buf, desc = "Show diagnostic" }
+					)
 				end,
 			})
 
@@ -59,15 +70,18 @@ return {
 			-- Rust
 			vim.lsp.config("rust_analyzer", { capabilities = capabilities })
 
+			-- Java
+			vim.lsp.config("jdtls", { capabilities = capabilities })
+
 			-- enable all configured servers
-			vim.lsp.enable({ "clangd", "pyright", "lua_ls", "gopls", "rust_analyzer" })
+			vim.lsp.enable({ "clangd", "pyright", "lua_ls", "gopls", "rust_analyzer", "jdtls" })
 		end,
 	},
 
 	{
 		"mason-org/mason-lspconfig.nvim",
 		opts = {
-			ensure_installed = { "clangd", "pyright", "lua_ls", "gopls", "rust_analyzer" },
+			ensure_installed = { "clangd", "pyright", "lua_ls", "gopls", "rust_analyzer", "jdtls" },
 		},
 	},
 }

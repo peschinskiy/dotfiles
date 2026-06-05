@@ -37,3 +37,6 @@ vim.o.shiftwidth = 4
 vim.o.smartindent = true
 
 vim.o.wrap = false
+
+-- Allow project-local .nvim.lua overrides (prompts for trust on first load)
+vim.o.exrc = true
